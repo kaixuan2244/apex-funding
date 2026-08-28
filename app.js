@@ -150,7 +150,7 @@ const elements = {
 };
 
 function loadClients() {
-  const stored = window.localStorage.getItem(storageKey);
+  const stored = readStoredClients();
   if (!stored) {
     return [...defaultClients];
   }
@@ -164,7 +164,31 @@ function loadClients() {
 }
 
 function saveClients() {
-  window.localStorage.setItem(storageKey, JSON.stringify(clients));
+  writeStoredClients(JSON.stringify(clients));
+}
+
+function readStoredClients() {
+  try {
+    return window.localStorage?.getItem(storageKey);
+  } catch {
+    return null;
+  }
+}
+
+function writeStoredClients(value) {
+  try {
+    window.localStorage?.setItem(storageKey, value);
+  } catch {
+    // Some embedded browsers disable localStorage; the in-memory list still works.
+  }
+}
+
+function clearStoredClients() {
+  try {
+    window.localStorage?.removeItem(storageKey);
+  } catch {
+    // Ignore unavailable storage.
+  }
 }
 
 function filteredClients() {
@@ -378,7 +402,7 @@ elements.resetDemo.addEventListener("click", () => {
   state.query = "";
   elements.search.value = "";
   elements.tabs.forEach((item) => item.classList.toggle("active", item.dataset.filter === "all"));
-  window.localStorage.removeItem(storageKey);
+  clearStoredClients();
   render();
 });
 
