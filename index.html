@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Apex Funding Client Portal</title>
+    <meta
+      name="description"
+      content="Apex Funding loan client profile and repayment dashboard."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Apex Funding navigation">
+        <div class="brand">
+          <img src="./public/assets/apex-logo-wide.png" alt="Apex Funding" />
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" type="button" aria-label="Dashboard">
+            <span class="nav-icon">AF</span>
+            Dashboard
+          </button>
+          <button class="nav-item" type="button" aria-label="Clients">
+            <span class="nav-icon">CL</span>
+            Clients
+          </button>
+          <button class="nav-item" type="button" aria-label="Loans">
+            <span class="nav-icon">LN</span>
+            Loans
+          </button>
+          <button class="nav-item" type="button" aria-label="Documents">
+            <span class="nav-icon">DC</span>
+            Documents
+          </button>
+        </nav>
+
+        <section class="manager-panel" aria-label="Account manager">
+          <p class="eyebrow">Account Manager</p>
+          <h2>Michelle Tan</h2>
+          <p>Funding advisor</p>
+          <a href="tel:+60355500128">+60 3-5550 0128</a>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Apex Funding</p>
+            <h1>Loan Client Overview</h1>
+          </div>
+          <div class="topbar-actions">
+            <label class="search-box">
+              <span>Search</span>
+              <input id="clientSearch" type="search" placeholder="Name, IC, company..." />
+            </label>
+            <button class="primary-action" type="button">New Application</button>
+          </div>
+        </header>
+
+        <section class="metric-grid" aria-label="Portfolio summary">
+          <article class="metric-card">
+            <span>Total Approved</span>
+            <strong>RM 1.82M</strong>
+            <small>Across 24 active clients</small>
+          </article>
+          <article class="metric-card">
+            <span>On-Time Rate</span>
+            <strong>96.4%</strong>
+            <small>Last 90 days</small>
+          </article>
+          <article class="metric-card">
+            <span>Pending Review</span>
+            <strong>7</strong>
+            <small>Documents or KYC checks</small>
+          </article>
+          <article class="metric-card">
+            <span>Due This Week</span>
+            <strong>RM 86.5K</strong>
+            <small>Scheduled collections</small>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <section class="client-panel" aria-label="Client list">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Customers</p>
+                <h2>Active Loan Files</h2>
+              </div>
+              <span id="clientCount">4 clients</span>
+            </div>
+            <div class="status-tabs" role="tablist" aria-label="Filter clients">
+              <button class="tab active" type="button" data-filter="all">All</button>
+              <button class="tab" type="button" data-filter="approved">Approved</button>
+              <button class="tab" type="button" data-filter="review">Review</button>
+            </div>
+            <div id="clientList" class="client-list"></div>
+          </section>
+
+          <section class="profile-panel" aria-label="Selected client profile">
+            <div class="profile-hero">
+              <div class="avatar-wrap">
+                <img src="./public/assets/apex-logo-square.png" alt="" />
+              </div>
+              <div>
+                <p id="clientStatus" class="status-pill approved">Approved</p>
+                <h2 id="clientName">Daniel Lim</h2>
+                <p id="clientMeta">SME Owner - Kuala Lumpur</p>
+              </div>
+            </div>
+
+            <div class="detail-grid">
+              <article>
+                <span>Loan Amount</span>
+                <strong id="loanAmount">RM 180,000</strong>
+              </article>
+              <article>
+                <span>Repayment Term</span>
+                <strong id="loanTerm">36 months</strong>
+              </article>
+              <article>
+                <span>Monthly Payment</span>
+                <strong id="monthlyPayment">RM 5,780</strong>
+              </article>
+              <article>
+                <span>Interest Rate</span>
+                <strong id="interestRate">8.8% p.a.</strong>
+              </article>
+            </div>
+
+            <section class="info-section">
+              <div class="section-heading tight">
+                <h3>Customer Information</h3>
+              </div>
+              <dl class="info-list">
+                <div>
+                  <dt>IC / Passport</dt>
+                  <dd id="clientId">880512-14-5331</dd>
+                </div>
+                <div>
+                  <dt>Phone</dt>
+                  <dd id="clientPhone">+60 12-448 9011</dd>
+                </div>
+                <div>
+                  <dt>Email</dt>
+                  <dd id="clientEmail">daniel@limtrading.my</dd>
+                </div>
+                <div>
+                  <dt>Address</dt>
+                  <dd id="clientAddress">Bangsar South, Kuala Lumpur</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="info-section repayment-section">
+              <div class="section-heading tight">
+                <h3>Repayment Progress</h3>
+                <span id="paidLabel">18 / 36 paid</span>
+              </div>
+              <div class="progress-track">
+                <div id="progressBar" class="progress-fill" style="width: 50%"></div>
+              </div>
+              <div class="repayment-grid">
+                <div>
+                  <span>Outstanding Balance</span>
+                  <strong id="balance">RM 98,260</strong>
+                </div>
+                <div>
+                  <span>Next Due Date</span>
+                  <strong id="nextDue">03 Sep 2026</strong>
+                </div>
+                <div>
+                  <span>Risk Level</span>
+                  <strong id="riskLevel">Low</strong>
+                </div>
+              </div>
+            </section>
+
+            <section class="info-section">
+              <div class="section-heading tight">
+                <h3>Documents</h3>
+              </div>
+              <div id="documentList" class="document-list"></div>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
