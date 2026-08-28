@@ -56,7 +56,7 @@ const defaultClients = [
     name: "Jason Wong",
     role: "Property Agent",
     location: "Johor Bahru",
-    status: "review",
+    status: "pending",
     ic: "DEMO-ID-003",
     phone: "+60 00-000 0003",
     email: "demo.client3@apexfunding.example",
@@ -115,17 +115,27 @@ const state = {
   activeId: clients[0].id,
   filter: "all",
   query: "",
+  view: "dashboard",
+  editingId: null,
 };
 
 const elements = {
+  navItems: document.querySelectorAll(".nav-item"),
   toggleForm: document.querySelector("#toggleFormButton"),
   closeForm: document.querySelector("#closeFormButton"),
   formPanel: document.querySelector("#applicationFormPanel"),
   form: document.querySelector("#applicationForm"),
+  cancelEdit: document.querySelector("#cancelEditButton"),
+  editCustomer: document.querySelector("#editCustomerButton"),
   resetDemo: document.querySelector("#resetDemoButton"),
+  viewSections: document.querySelectorAll(".view-section"),
   totalApproved: document.querySelector("#totalApproved"),
   activeClients: document.querySelector("#activeClients"),
   dueThisWeek: document.querySelector("#dueThisWeek"),
+  loanCount: document.querySelector("#loanCount"),
+  loanTable: document.querySelector("#loanTable"),
+  documentCount: document.querySelector("#documentCount"),
+  documentTable: document.querySelector("#documentTable"),
   search: document.querySelector("#clientSearch"),
   tabs: document.querySelectorAll(".tab"),
   list: document.querySelector("#clientList"),
@@ -226,7 +236,7 @@ function renderClientList() {
               <h3>${name}</h3>
               <p>${role} - ${location}</p>
             </div>
-            <span class="status-pill ${client.status}">${labelStatus(client.status)}</span>
+            ${renderStatusPill(client.status)}
           </div>
           <div class="mini-stat">
             <span>${money.format(client.loanAmount)} loan</span>
@@ -246,15 +256,15 @@ function renderClientList() {
 }
 
 function renderProfile() {
-  const active = clients.find((client) => client.id === state.activeId) || filteredClients()[0] || clients[0];
+  const active = getActiveClient();
   if (!active) {
     return;
   }
   state.activeId = active.id;
   const percent = Math.min(100, Math.round((active.paid / active.term) * 100));
 
-  elements.status.textContent = labelStatus(active.status);
-  elements.status.className = `status-pill ${active.status}`;
+  elements.status.outerHTML = renderStatusPill(active.status, "clientStatus");
+  elements.status = document.querySelector("#clientStatus");
   elements.name.textContent = active.name;
   elements.meta.textContent = `${active.role} - ${active.location}`;
   elements.loanAmount.textContent = money.format(active.loanAmount);
@@ -298,6 +308,93 @@ function renderMetrics() {
   document.querySelector(".metric-card:nth-child(3) strong").textContent = pendingDocs;
 }
 
+function renderViews() {
+  elements.navItems.forEach((item) => {
+    item.classList.toggle("active", item.dataset.view === state.view);
+  });
+
+  elements.viewSections.forEach((section) => {
+    const visibleViews = section.dataset.section.split(" ");
+    section.hidden = !visibleViews.includes(state.view);
+  });
+}
+
+function renderLoansView() {
+  elements.loanCount.textContent = `${clients.length} record${clients.length === 1 ? "" : "s"}`;
+  elements.loanTable.innerHTML = `
+    <div class="table-row header">
+      <span>Customer</span>
+      <span>Amount</span>
+      <span>Term</span>
+      <span>Monthly</span>
+      <span>Status</span>
+      <span>Risk</span>
+    </div>
+    ${clients
+      .map(
+        (client) => `
+          <button class="table-row" type="button" data-loan-id="${client.id}">
+            <strong>${escapeHtml(client.name)}</strong>
+            <span>${money.format(client.loanAmount)}</span>
+            <span>${client.term} months</span>
+            <span>${money.format(client.monthlyPayment)}</span>
+            ${renderStatusPill(client.status)}
+            <span>${escapeHtml(client.risk)}</span>
+          </button>
+        `,
+      )
+      .join("")}
+  `;
+
+  elements.loanTable.querySelectorAll("[data-loan-id]").forEach((row) => {
+    row.addEventListener("click", () => {
+      state.activeId = row.dataset.loanId;
+      state.view = "clients";
+      render();
+    });
+  });
+}
+
+function renderDocumentsView() {
+  const rows = clients.flatMap((client) =>
+    client.documents.map(([name, status]) => ({
+      client,
+      name,
+      status,
+    })),
+  );
+
+  elements.documentCount.textContent = `${rows.length} item${rows.length === 1 ? "" : "s"}`;
+  elements.documentTable.innerHTML = `
+    <div class="table-row document-table-row header">
+      <span>Customer</span>
+      <span>Document</span>
+      <span>Status</span>
+      <span>Loan Status</span>
+    </div>
+    ${rows
+      .map(
+        ({ client, name, status }) => `
+          <button class="table-row document-table-row" type="button" data-doc-client-id="${client.id}">
+            <strong>${escapeHtml(client.name)}</strong>
+            <span>${escapeHtml(name)}</span>
+            <span class="doc-status ${status}">${labelStatus(status)}</span>
+            ${renderStatusPill(client.status)}
+          </button>
+        `,
+      )
+      .join("")}
+  `;
+
+  elements.documentTable.querySelectorAll("[data-doc-client-id]").forEach((row) => {
+    row.addEventListener("click", () => {
+      state.activeId = row.dataset.docClientId;
+      state.view = "clients";
+      render();
+    });
+  });
+}
+
 function formatDate(value) {
   if (!value) {
     return "Pending confirmation";
@@ -311,6 +408,10 @@ function formatDate(value) {
   });
 }
 
+function getActiveClient() {
+  return clients.find((client) => client.id === state.activeId) || filteredClients()[0] || clients[0];
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -320,13 +421,19 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function createClientFromForm(form) {
+function renderStatusPill(status, id = "") {
+  const idAttribute = id ? ` id="${id}"` : "";
+  const loader = status === "pending" ? `<span class="loading-ring" aria-hidden="true"></span>` : "";
+  return `<span${idAttribute} class="status-pill ${status}">${loader}${labelStatus(status)}</span>`;
+}
+
+function createClientFromForm(form, existingId = null) {
   const data = new FormData(form);
   const term = Number(data.get("term"));
   const paid = Math.min(Number(data.get("paid")), term);
 
   return {
-    id: `c-${Date.now()}`,
+    id: existingId || `c-${Date.now()}`,
     name: data.get("name").trim(),
     role: data.get("role").trim(),
     location: data.get("location").trim(),
@@ -341,6 +448,7 @@ function createClientFromForm(form) {
     interest: data.get("interest").trim(),
     paid,
     balance: Number(data.get("balance")),
+    rawNextDue: data.get("nextDue"),
     nextDue: formatDate(data.get("nextDue")),
     risk: data.get("risk"),
     documents: [
@@ -356,6 +464,7 @@ function labelStatus(status) {
   const labels = {
     approved: "Approved",
     review: "Review",
+    pending: "Pending",
     verified: "Verified",
     pending: "Pending",
     missing: "Missing",
@@ -364,34 +473,106 @@ function labelStatus(status) {
 }
 
 function render() {
+  renderViews();
   renderMetrics();
   renderClientList();
   renderProfile();
+  renderLoansView();
+  renderDocumentsView();
 }
 
+function openApplicationForm(mode) {
+  elements.formPanel.hidden = false;
+  elements.formPanel.querySelector("h2").textContent = mode === "edit" ? "Edit Loan Application" : "Add Loan Application";
+  elements.formPanel.querySelector(".eyebrow").textContent = mode === "edit" ? "Update Customer" : "New Customer";
+  elements.form.querySelector("button[type='submit']").textContent = mode === "edit" ? "Save Changes" : "Save Customer";
+  elements.cancelEdit.hidden = mode !== "edit";
+  elements.form.querySelector("input[name='name']").focus();
+}
+
+function closeApplicationForm() {
+  state.editingId = null;
+  elements.form.reset();
+  elements.cancelEdit.hidden = true;
+  elements.formPanel.hidden = true;
+  elements.formPanel.querySelector("h2").textContent = "Add Loan Application";
+  elements.formPanel.querySelector(".eyebrow").textContent = "New Customer";
+  elements.form.querySelector("button[type='submit']").textContent = "Save Customer";
+}
+
+function populateForm(client) {
+  const fields = elements.form.elements;
+  fields.name.value = client.name;
+  fields.role.value = client.role;
+  fields.location.value = client.location;
+  fields.ic.value = client.ic;
+  fields.phone.value = client.phone;
+  fields.email.value = client.email === "Not provided" ? "" : client.email;
+  fields.address.value = client.address;
+  fields.loanAmount.value = client.loanAmount;
+  fields.term.value = client.term;
+  fields.monthlyPayment.value = client.monthlyPayment;
+  fields.interest.value = client.interest;
+  fields.paid.value = client.paid;
+  fields.balance.value = client.balance;
+  fields.nextDue.value = client.rawNextDue || "";
+  fields.status.value = client.status;
+  fields.risk.value = client.risk;
+}
+
+elements.navItems.forEach((item) => {
+  item.addEventListener("click", () => {
+    state.view = item.dataset.view;
+    closeApplicationForm();
+    render();
+  });
+});
+
 elements.toggleForm.addEventListener("click", () => {
-  elements.formPanel.hidden = !elements.formPanel.hidden;
-  if (!elements.formPanel.hidden) {
-    elements.form.querySelector("input[name='name']").focus();
-  }
+  state.editingId = null;
+  elements.form.reset();
+  openApplicationForm("add");
 });
 
 elements.closeForm.addEventListener("click", () => {
-  elements.formPanel.hidden = true;
+  closeApplicationForm();
+});
+
+elements.cancelEdit.addEventListener("click", () => {
+  closeApplicationForm();
+});
+
+elements.editCustomer.addEventListener("click", () => {
+  const active = getActiveClient();
+  if (!active) {
+    return;
+  }
+
+  state.view = "clients";
+  state.editingId = active.id;
+  populateForm(active);
+  openApplicationForm("edit");
+  renderViews();
 });
 
 elements.form.addEventListener("submit", (event) => {
   event.preventDefault();
-  const newClient = createClientFromForm(elements.form);
-  clients = [newClient, ...clients];
-  state.activeId = newClient.id;
+  const editedClient = createClientFromForm(elements.form, state.editingId);
+
+  if (state.editingId) {
+    clients = clients.map((client) => (client.id === state.editingId ? editedClient : client));
+  } else {
+    clients = [editedClient, ...clients];
+  }
+
+  state.activeId = editedClient.id;
   state.filter = "all";
   state.query = "";
+  state.editingId = null;
   elements.search.value = "";
   elements.tabs.forEach((item) => item.classList.toggle("active", item.dataset.filter === "all"));
   saveClients();
-  elements.form.reset();
-  elements.formPanel.hidden = true;
+  closeApplicationForm();
   render();
 });
 

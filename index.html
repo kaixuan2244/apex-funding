@@ -24,19 +24,19 @@
         </div>
 
         <nav class="nav-list">
-          <button class="nav-item active" type="button" aria-label="Dashboard">
+          <button class="nav-item active" type="button" data-view="dashboard" aria-label="Dashboard">
             <span class="nav-icon">AF</span>
             Dashboard
           </button>
-          <button class="nav-item" type="button" aria-label="Clients">
+          <button class="nav-item" type="button" data-view="clients" aria-label="Clients">
             <span class="nav-icon">CL</span>
             Clients
           </button>
-          <button class="nav-item" type="button" aria-label="Loans">
+          <button class="nav-item" type="button" data-view="loans" aria-label="Loans">
             <span class="nav-icon">LN</span>
             Loans
           </button>
-          <button class="nav-item" type="button" aria-label="Documents">
+          <button class="nav-item" type="button" data-view="documents" aria-label="Documents">
             <span class="nav-icon">DC</span>
             Documents
           </button>
@@ -65,7 +65,7 @@
           </div>
         </header>
 
-        <section class="metric-grid" aria-label="Portfolio summary">
+        <section class="metric-grid view-section" data-section="dashboard" aria-label="Portfolio summary">
           <article class="metric-card">
             <span>Total Approved</span>
             <strong id="totalApproved">RM 0</strong>
@@ -159,6 +159,7 @@
               <select name="status">
                 <option value="approved">Approved</option>
                 <option value="review">Review</option>
+                <option value="pending">Pending</option>
               </select>
             </label>
             <label>
@@ -171,12 +172,13 @@
             </label>
             <div class="form-actions wide-field">
               <button class="primary-action" type="submit">Save Customer</button>
+              <button id="cancelEditButton" class="ghost-action" type="button" hidden>Cancel Edit</button>
               <button id="resetDemoButton" class="ghost-action" type="button">Reset Demo Data</button>
             </div>
           </form>
         </section>
 
-        <section class="content-grid">
+        <section class="content-grid view-section" data-section="dashboard clients">
           <section class="client-panel" aria-label="Client list">
             <div class="section-heading">
               <div>
@@ -188,6 +190,7 @@
             <div class="status-tabs" role="tablist" aria-label="Filter clients">
               <button class="tab active" type="button" data-filter="all">All</button>
               <button class="tab" type="button" data-filter="approved">Approved</button>
+              <button class="tab" type="button" data-filter="pending">Pending</button>
               <button class="tab" type="button" data-filter="review">Review</button>
             </div>
             <div id="clientList" class="client-list"></div>
@@ -203,6 +206,7 @@
                 <h2 id="clientName">Daniel Lim</h2>
                 <p id="clientMeta">SME Owner - Kuala Lumpur</p>
               </div>
+              <button id="editCustomerButton" class="hero-action" type="button">Edit</button>
             </div>
 
             <div class="detail-grid">
@@ -279,6 +283,28 @@
               <div id="documentList" class="document-list"></div>
             </section>
           </section>
+        </section>
+
+        <section class="table-panel view-section" data-section="loans" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Loans</p>
+              <h2>Loan Applications</h2>
+            </div>
+            <span id="loanCount">0 records</span>
+          </div>
+          <div id="loanTable" class="record-table" aria-label="Loan application records"></div>
+        </section>
+
+        <section class="table-panel view-section" data-section="documents" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Documents</p>
+              <h2>Document Checklist</h2>
+            </div>
+            <span id="documentCount">0 items</span>
+          </div>
+          <div id="documentTable" class="record-table" aria-label="Document records"></div>
         </section>
       </main>
     </div>

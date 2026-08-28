@@ -12,6 +12,9 @@ Open `index.html` in a browser. No installation is required.
 
 - Apex Funding branding and logo assets
 - Add new customer and loan application records
+- Edit saved customer and loan records
+- Clickable Dashboard, Clients, Loans, and Documents sections
+- Pending status with loading animation
 - Browser-local saved records for quick demos
 - Customer search and status filtering
 - Customer profile details

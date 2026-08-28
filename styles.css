@@ -189,6 +189,18 @@ select {
   cursor: pointer;
 }
 
+.hero-action {
+  min-height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 8px;
+  padding: 0 16px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  font-weight: 800;
+  cursor: pointer;
+  margin-left: auto;
+}
+
 .ghost-action {
   min-height: 40px;
   border: 1px solid var(--line);
@@ -210,6 +222,7 @@ select {
 .metric-card,
 .application-panel,
 .client-panel,
+.table-panel,
 .profile-panel {
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -293,6 +306,7 @@ select {
 }
 
 .client-panel,
+.table-panel,
 .profile-panel {
   padding: 20px;
 }
@@ -317,7 +331,7 @@ select {
 
 .status-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   padding: 4px;
   border-radius: 8px;
@@ -461,6 +475,26 @@ select {
   color: #fff2d6;
 }
 
+.status-pill.pending {
+  color: #eaf6ff;
+}
+
+.loading-ring {
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  margin-right: 7px;
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -574,6 +608,53 @@ select {
   color: var(--red);
 }
 
+.record-table {
+  display: grid;
+  gap: 10px;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 0.85fr 0.85fr 0.85fr 0.75fr;
+  gap: 12px;
+  align-items: center;
+  min-height: 58px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  text-align: left;
+}
+
+button.table-row {
+  cursor: pointer;
+}
+
+button.table-row:hover {
+  border-color: rgba(18, 104, 243, 0.5);
+  box-shadow: 0 12px 28px rgba(18, 104, 243, 0.1);
+}
+
+.table-row.header {
+  min-height: 42px;
+  color: var(--muted);
+  background: var(--soft);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.table-row strong,
+.table-row span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.document-table-row {
+  grid-template-columns: 1fr 1fr 1fr 0.8fr;
+}
+
 @media (max-width: 1100px) {
   .app-shell {
     grid-template-columns: 1fr;
@@ -599,7 +680,8 @@ select {
 
   .metric-grid,
   .detail-grid,
-  .application-form {
+  .application-form,
+  .table-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -633,6 +715,7 @@ select {
   .metric-grid,
   .detail-grid,
   .application-form,
+  .table-row,
   .info-list,
   .repayment-grid {
     grid-template-columns: 1fr;
