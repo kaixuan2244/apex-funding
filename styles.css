@@ -70,6 +70,7 @@ select {
   gap: 12px;
   padding: 10px 12px;
   cursor: pointer;
+  text-decoration: none;
 }
 
 .nav-item.active,

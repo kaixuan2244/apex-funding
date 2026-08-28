@@ -111,11 +111,13 @@ const money = new Intl.NumberFormat("en-MY", {
   maximumFractionDigits: 0,
 });
 
+const views = ["dashboard", "clients", "loans", "documents"];
+
 const state = {
   activeId: clients[0].id,
   filter: "all",
   query: "",
-  view: "dashboard",
+  view: getViewFromHash(),
   editingId: null,
 };
 
@@ -412,6 +414,11 @@ function getActiveClient() {
   return clients.find((client) => client.id === state.activeId) || filteredClients()[0] || clients[0];
 }
 
+function getViewFromHash() {
+  const view = window.location.hash.replace("#", "");
+  return views.includes(view) ? view : "dashboard";
+}
+
 function escapeHtml(value) {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -521,12 +528,31 @@ function populateForm(client) {
 }
 
 elements.navItems.forEach((item) => {
-  item.addEventListener("click", () => {
-    state.view = item.dataset.view;
-    closeApplicationForm();
-    render();
+  item.addEventListener("click", (event) => {
+    event.preventDefault();
+    setPortalView(item.dataset.view);
   });
 });
+
+function setPortalView(view, updateHash = true) {
+  if (!views.includes(view)) {
+    return;
+  }
+
+  state.view = view;
+  if (updateHash && window.location.hash !== `#${view}`) {
+    window.location.hash = view;
+  }
+  closeApplicationForm();
+  render();
+}
+
+window.setPortalView = setPortalView;
+
+window.addEventListener("hashchange", () => {
+  setPortalView(getViewFromHash(), false);
+});
+
 
 elements.toggleForm.addEventListener("click", () => {
   state.editingId = null;
