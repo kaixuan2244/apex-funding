@@ -26,7 +26,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -188,6 +189,17 @@ input {
   cursor: pointer;
 }
 
+.ghost-action {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 14px;
+  color: var(--ink);
+  background: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .metric-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -196,6 +208,7 @@ input {
 }
 
 .metric-card,
+.application-panel,
 .client-panel,
 .profile-panel {
   border: 1px solid var(--line);
@@ -208,6 +221,53 @@ input {
   display: grid;
   gap: 8px;
   padding: 18px;
+}
+
+.application-panel {
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.application-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.application-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.application-form input,
+.application-form select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: var(--ink);
+  background: #ffffff;
+  outline: none;
+}
+
+.application-form input:focus,
+.application-form select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(18, 104, 243, 0.12);
+}
+
+.wide-field {
+  grid-column: span 2;
+}
+
+.form-actions {
+  display: flex;
+  align-items: end;
+  gap: 10px;
 }
 
 .metric-card span,
@@ -284,6 +344,16 @@ input {
 .client-list {
   display: grid;
   gap: 10px;
+}
+
+.empty-state {
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: var(--soft);
+  font-weight: 700;
+  text-align: center;
 }
 
 .client-card {
@@ -528,7 +598,8 @@ input {
   }
 
   .metric-grid,
-  .detail-grid {
+  .detail-grid,
+  .application-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -561,8 +632,18 @@ input {
 
   .metric-grid,
   .detail-grid,
+  .application-form,
   .info-list,
   .repayment-grid {
     grid-template-columns: 1fr;
+  }
+
+  .wide-field {
+    grid-column: span 1;
+  }
+
+  .form-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

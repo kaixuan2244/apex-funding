@@ -1,4 +1,6 @@
-const clients = [
+const storageKey = "apexFundingClients";
+
+const defaultClients = [
   {
     id: "c-001",
     name: "Daniel Lim",
@@ -101,6 +103,8 @@ const clients = [
   },
 ];
 
+let clients = loadClients();
+
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
   currency: "MYR",
@@ -114,6 +118,14 @@ const state = {
 };
 
 const elements = {
+  toggleForm: document.querySelector("#toggleFormButton"),
+  closeForm: document.querySelector("#closeFormButton"),
+  formPanel: document.querySelector("#applicationFormPanel"),
+  form: document.querySelector("#applicationForm"),
+  resetDemo: document.querySelector("#resetDemoButton"),
+  totalApproved: document.querySelector("#totalApproved"),
+  activeClients: document.querySelector("#activeClients"),
+  dueThisWeek: document.querySelector("#dueThisWeek"),
   search: document.querySelector("#clientSearch"),
   tabs: document.querySelectorAll(".tab"),
   list: document.querySelector("#clientList"),
@@ -136,6 +148,24 @@ const elements = {
   risk: document.querySelector("#riskLevel"),
   documents: document.querySelector("#documentList"),
 };
+
+function loadClients() {
+  const stored = window.localStorage.getItem(storageKey);
+  if (!stored) {
+    return [...defaultClients];
+  }
+
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) && parsed.length ? parsed : [...defaultClients];
+  } catch {
+    return [...defaultClients];
+  }
+}
+
+function saveClients() {
+  window.localStorage.setItem(storageKey, JSON.stringify(clients));
+}
 
 function filteredClients() {
   const query = state.query.trim().toLowerCase();
@@ -160,13 +190,17 @@ function renderClientList() {
   elements.count.textContent = `${visibleClients.length} client${visibleClients.length === 1 ? "" : "s"}`;
 
   elements.list.innerHTML = visibleClients
-    .map(
-      (client) => `
+    .map((client) => {
+      const name = escapeHtml(client.name);
+      const role = escapeHtml(client.role);
+      const location = escapeHtml(client.location);
+
+      return `
         <button class="client-card ${client.id === state.activeId ? "selected" : ""}" type="button" data-id="${client.id}">
           <div class="client-card-header">
             <div>
-              <h3>${client.name}</h3>
-              <p>${client.role} - ${client.location}</p>
+              <h3>${name}</h3>
+              <p>${role} - ${location}</p>
             </div>
             <span class="status-pill ${client.status}">${labelStatus(client.status)}</span>
           </div>
@@ -175,9 +209,9 @@ function renderClientList() {
             <strong>${client.term} months</strong>
           </div>
         </button>
-      `,
-    )
-    .join("");
+      `;
+    })
+    .join("") || `<div class="empty-state">No customers found.</div>`;
 
   elements.list.querySelectorAll(".client-card").forEach((card) => {
     card.addEventListener("click", () => {
@@ -189,8 +223,11 @@ function renderClientList() {
 
 function renderProfile() {
   const active = clients.find((client) => client.id === state.activeId) || filteredClients()[0] || clients[0];
+  if (!active) {
+    return;
+  }
   state.activeId = active.id;
-  const percent = Math.round((active.paid / active.term) * 100);
+  const percent = Math.min(100, Math.round((active.paid / active.term) * 100));
 
   elements.status.textContent = labelStatus(active.status);
   elements.status.className = `status-pill ${active.status}`;
@@ -222,6 +259,75 @@ function renderProfile() {
     .join("");
 }
 
+function renderMetrics() {
+  const approvedClients = clients.filter((client) => client.status === "approved");
+  const totalApproved = approvedClients.reduce((sum, client) => sum + client.loanAmount, 0);
+  const dueThisWeek = approvedClients.reduce((sum, client) => sum + client.monthlyPayment, 0);
+  const pendingDocs = clients.reduce(
+    (sum, client) => sum + client.documents.filter(([, status]) => status !== "verified").length,
+    0,
+  );
+
+  elements.totalApproved.textContent = money.format(totalApproved);
+  elements.activeClients.textContent = `Across ${approvedClients.length} approved clients`;
+  elements.dueThisWeek.textContent = money.format(dueThisWeek);
+  document.querySelector(".metric-card:nth-child(3) strong").textContent = pendingDocs;
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Pending confirmation";
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+  return date.toLocaleDateString("en-MY", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function createClientFromForm(form) {
+  const data = new FormData(form);
+  const term = Number(data.get("term"));
+  const paid = Math.min(Number(data.get("paid")), term);
+
+  return {
+    id: `c-${Date.now()}`,
+    name: data.get("name").trim(),
+    role: data.get("role").trim(),
+    location: data.get("location").trim(),
+    status: data.get("status"),
+    ic: data.get("ic").trim(),
+    phone: data.get("phone").trim(),
+    email: data.get("email").trim() || "Not provided",
+    address: data.get("address").trim(),
+    loanAmount: Number(data.get("loanAmount")),
+    term,
+    monthlyPayment: Number(data.get("monthlyPayment")),
+    interest: data.get("interest").trim(),
+    paid,
+    balance: Number(data.get("balance")),
+    nextDue: formatDate(data.get("nextDue")),
+    risk: data.get("risk"),
+    documents: [
+      ["NRIC / Passport", "pending"],
+      ["Bank Statement", "pending"],
+      ["Business Registration", "pending"],
+      ["Income Proof", "pending"],
+    ],
+  };
+}
+
 function labelStatus(status) {
   const labels = {
     approved: "Approved",
@@ -234,9 +340,47 @@ function labelStatus(status) {
 }
 
 function render() {
+  renderMetrics();
   renderClientList();
   renderProfile();
 }
+
+elements.toggleForm.addEventListener("click", () => {
+  elements.formPanel.hidden = !elements.formPanel.hidden;
+  if (!elements.formPanel.hidden) {
+    elements.form.querySelector("input[name='name']").focus();
+  }
+});
+
+elements.closeForm.addEventListener("click", () => {
+  elements.formPanel.hidden = true;
+});
+
+elements.form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const newClient = createClientFromForm(elements.form);
+  clients = [newClient, ...clients];
+  state.activeId = newClient.id;
+  state.filter = "all";
+  state.query = "";
+  elements.search.value = "";
+  elements.tabs.forEach((item) => item.classList.toggle("active", item.dataset.filter === "all"));
+  saveClients();
+  elements.form.reset();
+  elements.formPanel.hidden = true;
+  render();
+});
+
+elements.resetDemo.addEventListener("click", () => {
+  clients = [...defaultClients];
+  state.activeId = clients[0].id;
+  state.filter = "all";
+  state.query = "";
+  elements.search.value = "";
+  elements.tabs.forEach((item) => item.classList.toggle("active", item.dataset.filter === "all"));
+  window.localStorage.removeItem(storageKey);
+  render();
+});
 
 elements.search.addEventListener("input", (event) => {
   state.query = event.target.value;

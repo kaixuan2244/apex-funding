@@ -61,15 +61,15 @@
               <span>Search</span>
               <input id="clientSearch" type="search" placeholder="Name, IC, company..." />
             </label>
-            <button class="primary-action" type="button">New Application</button>
+            <button id="toggleFormButton" class="primary-action" type="button">New Application</button>
           </div>
         </header>
 
         <section class="metric-grid" aria-label="Portfolio summary">
           <article class="metric-card">
             <span>Total Approved</span>
-            <strong>RM 1.82M</strong>
-            <small>Across 24 active clients</small>
+            <strong id="totalApproved">RM 0</strong>
+            <small id="activeClients">Across 0 active clients</small>
           </article>
           <article class="metric-card">
             <span>On-Time Rate</span>
@@ -83,9 +83,97 @@
           </article>
           <article class="metric-card">
             <span>Due This Week</span>
-            <strong>RM 86.5K</strong>
+            <strong id="dueThisWeek">RM 0</strong>
             <small>Scheduled collections</small>
           </article>
+        </section>
+
+        <section id="applicationFormPanel" class="application-panel" aria-label="New loan application" hidden>
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">New Customer</p>
+              <h2>Add Loan Application</h2>
+            </div>
+            <button id="closeFormButton" class="ghost-action" type="button">Close</button>
+          </div>
+
+          <form id="applicationForm" class="application-form">
+            <label>
+              Customer Name
+              <input name="name" required placeholder="Example: Lee Wei Ming" />
+            </label>
+            <label>
+              Job / Business
+              <input name="role" required placeholder="Example: Trading Company Owner" />
+            </label>
+            <label>
+              Location
+              <input name="location" required placeholder="Example: Kuala Lumpur" />
+            </label>
+            <label>
+              IC / Passport
+              <input name="ic" required placeholder="Customer ID" />
+            </label>
+            <label>
+              Phone
+              <input name="phone" required placeholder="+60..." />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" placeholder="customer@email.com" />
+            </label>
+            <label class="wide-field">
+              Address
+              <input name="address" required placeholder="Customer address" />
+            </label>
+            <label>
+              Loan Amount (RM)
+              <input name="loanAmount" type="number" min="0" step="100" required placeholder="100000" />
+            </label>
+            <label>
+              Repayment Term
+              <input name="term" type="number" min="1" max="120" required placeholder="36" />
+            </label>
+            <label>
+              Monthly Payment (RM)
+              <input name="monthlyPayment" type="number" min="0" step="10" required placeholder="3500" />
+            </label>
+            <label>
+              Interest Rate
+              <input name="interest" required placeholder="8.8% p.a." />
+            </label>
+            <label>
+              Paid Months
+              <input name="paid" type="number" min="0" required value="0" />
+            </label>
+            <label>
+              Outstanding Balance (RM)
+              <input name="balance" type="number" min="0" step="100" required placeholder="80000" />
+            </label>
+            <label>
+              Next Due Date
+              <input name="nextDue" type="date" />
+            </label>
+            <label>
+              Status
+              <select name="status">
+                <option value="approved">Approved</option>
+                <option value="review">Review</option>
+              </select>
+            </label>
+            <label>
+              Risk Level
+              <select name="risk">
+                <option>Low</option>
+                <option>Medium</option>
+                <option>High</option>
+              </select>
+            </label>
+            <div class="form-actions wide-field">
+              <button class="primary-action" type="submit">Save Customer</button>
+              <button id="resetDemoButton" class="ghost-action" type="button">Reset Demo Data</button>
+            </div>
+          </form>
         </section>
 
         <section class="content-grid">

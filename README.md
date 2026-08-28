@@ -11,6 +11,8 @@ Open `index.html` in a browser. No installation is required.
 ## Included
 
 - Apex Funding branding and logo assets
+- Add new customer and loan application records
+- Browser-local saved records for quick demos
 - Customer search and status filtering
 - Customer profile details
 - Loan amount, repayment term, monthly payment, interest rate, balance, and next due date
