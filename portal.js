@@ -103,7 +103,7 @@ const defaultClients = [
   },
 ];
 
-let clients = loadClients();
+let clients = loadClients().map(normalizeClient);
 
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
@@ -159,6 +159,11 @@ const elements = {
   nextDue: document.querySelector("#nextDue"),
   risk: document.querySelector("#riskLevel"),
   documents: document.querySelector("#documentList"),
+  clientAvatar: document.querySelector("#clientAvatar"),
+  clientInitials: document.querySelector("#clientInitials"),
+  rejectReasonSection: document.querySelector("#rejectReasonSection"),
+  rejectReasonText: document.querySelector("#rejectReasonText"),
+  mediaPreviewList: document.querySelector("#mediaPreviewList"),
 };
 
 function loadClients() {
@@ -173,6 +178,14 @@ function loadClients() {
   } catch {
     return [...defaultClients];
   }
+}
+
+function normalizeClient(client) {
+  return {
+    rejectReason: "",
+    assets: {},
+    ...client,
+  };
 }
 
 function saveClients() {
@@ -277,21 +290,31 @@ function renderProfile() {
   elements.phone.textContent = active.phone;
   elements.email.textContent = active.email;
   elements.address.textContent = active.address;
+  const avatar = active.assets.avatar;
+  elements.clientAvatar.hidden = !avatar;
+  elements.clientInitials.hidden = Boolean(avatar);
+  elements.clientAvatar.src = avatar?.dataUrl || "";
+  elements.clientInitials.textContent = getInitials(active.name);
   elements.paidLabel.textContent = `${active.paid} / ${active.term} paid`;
   elements.progress.style.width = `${percent}%`;
   elements.balance.textContent = money.format(active.balance);
   elements.nextDue.textContent = active.nextDue;
   elements.risk.textContent = active.risk;
+  elements.rejectReasonSection.hidden = active.status !== "rejected";
+  elements.rejectReasonText.textContent = active.rejectReason || "No reason provided.";
+  renderMediaPreview(active);
 
   elements.documents.innerHTML = active.documents
-    .map(
-      ([name, status]) => `
+    .map(([name, status]) => {
+      const asset = getDocumentAsset(active, name);
+      return `
         <div class="document-row">
-          <strong>${name}</strong>
-          <span class="doc-status ${status}">${labelStatus(status)}</span>
+          <strong>${escapeHtml(name)}</strong>
+          <span class="doc-status ${asset ? "verified" : status}">${asset ? "Uploaded" : labelStatus(status)}</span>
+          ${asset ? `<a class="file-link" href="${asset.dataUrl}" target="_blank" rel="noopener">Open</a>` : ""}
         </div>
-      `,
-    )
+      `;
+    })
     .join("");
 }
 
@@ -358,13 +381,32 @@ function renderLoansView() {
 }
 
 function renderDocumentsView() {
-  const rows = clients.flatMap((client) =>
-    client.documents.map(([name, status]) => ({
+  const rows = clients.flatMap((client) => [
+    {
+      client,
+      name: "Customer Avatar",
+      status: client.assets.avatar ? "verified" : "pending",
+      asset: client.assets.avatar,
+    },
+    {
+      client,
+      name: "IC Photo",
+      status: client.assets.icPhoto ? "verified" : "pending",
+      asset: client.assets.icPhoto,
+    },
+    {
+      client,
+      name: "Selfie With IC",
+      status: client.assets.selfie ? "verified" : "pending",
+      asset: client.assets.selfie,
+    },
+    ...client.documents.map(([name, status]) => ({
       client,
       name,
       status,
+      asset: getDocumentAsset(client, name),
     })),
-  );
+  ]);
 
   elements.documentCount.textContent = `${rows.length} item${rows.length === 1 ? "" : "s"}`;
   elements.documentTable.innerHTML = `
@@ -376,14 +418,16 @@ function renderDocumentsView() {
     </div>
     ${rows
       .map(
-        ({ client, name, status }) => `
+        ({ client, name, status, asset }) => {
+          return `
           <button class="table-row document-table-row" type="button" data-doc-client-id="${client.id}">
             <strong>${escapeHtml(client.name)}</strong>
             <span>${escapeHtml(name)}</span>
-            <span class="doc-status ${status}">${labelStatus(status)}</span>
+            <span class="doc-status ${asset ? "verified" : status}">${asset ? "Uploaded" : labelStatus(status)}</span>
             ${renderStatusPill(client.status)}
           </button>
-        `,
+        `;
+        },
       )
       .join("")}
   `;
@@ -414,9 +458,61 @@ function getActiveClient() {
   return clients.find((client) => client.id === state.activeId) || filteredClients()[0] || clients[0];
 }
 
+function renderMediaPreview(client) {
+  const previewAssets = [
+    ["Customer Avatar", client.assets.avatar],
+    ["IC Photo", client.assets.icPhoto],
+    ["Selfie With IC", client.assets.selfie],
+  ].filter(([, asset]) => asset);
+
+  if (!previewAssets.length) {
+    elements.mediaPreviewList.innerHTML = `<div class="empty-state">No customer photos uploaded yet.</div>`;
+    return;
+  }
+
+  elements.mediaPreviewList.innerHTML = previewAssets
+    .map(([label, asset]) => {
+      const isImage = asset.type?.startsWith("image/");
+      return `
+        <article class="media-card">
+          ${
+            isImage
+              ? `<img src="${asset.dataUrl}" alt="${escapeHtml(label)}" />`
+              : `<div class="file-preview">${escapeHtml(asset.name)}</div>`
+          }
+          <div class="media-card-body">
+            <span>${escapeHtml(label)}</span>
+            <a href="${asset.dataUrl}" target="_blank" rel="noopener">${escapeHtml(asset.name)}</a>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+}
+
+function getDocumentAsset(client, documentName) {
+  const map = {
+    "NRIC / Passport": client.assets.icPhoto,
+    "Bank Statement": client.assets.bankStatement,
+    "Business Registration": client.assets.businessRegistration,
+    "Income Proof": client.assets.incomeProof,
+  };
+  return map[documentName] || null;
+}
+
 function getViewFromHash() {
   const view = window.location.hash.replace("#", "");
   return views.includes(view) ? view : "dashboard";
+}
+
+function getInitials(name) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 function escapeHtml(value) {
@@ -434,17 +530,29 @@ function renderStatusPill(status, id = "") {
   return `<span${idAttribute} class="status-pill ${status}">${loader}${labelStatus(status)}</span>`;
 }
 
-function createClientFromForm(form, existingId = null) {
+async function createClientFromForm(form, existingClient = null) {
   const data = new FormData(form);
   const term = Number(data.get("term"));
   const paid = Math.min(Number(data.get("paid")), term);
+  const assets = {
+    ...(existingClient?.assets || {}),
+    avatar: (await fileAssetFromInput(form.elements.avatarFile)) || existingClient?.assets?.avatar,
+    icPhoto: (await fileAssetFromInput(form.elements.icPhotoFile)) || existingClient?.assets?.icPhoto,
+    selfie: (await fileAssetFromInput(form.elements.selfieFile)) || existingClient?.assets?.selfie,
+    bankStatement:
+      (await fileAssetFromInput(form.elements.bankStatementFile)) || existingClient?.assets?.bankStatement,
+    businessRegistration:
+      (await fileAssetFromInput(form.elements.businessRegistrationFile)) || existingClient?.assets?.businessRegistration,
+    incomeProof: (await fileAssetFromInput(form.elements.incomeProofFile)) || existingClient?.assets?.incomeProof,
+  };
 
   return {
-    id: existingId || `c-${Date.now()}`,
+    id: existingClient?.id || `c-${Date.now()}`,
     name: data.get("name").trim(),
     role: data.get("role").trim(),
     location: data.get("location").trim(),
     status: data.get("status"),
+    rejectReason: data.get("rejectReason").trim(),
     ic: data.get("ic").trim(),
     phone: data.get("phone").trim(),
     email: data.get("email").trim() || "Not provided",
@@ -459,12 +567,33 @@ function createClientFromForm(form, existingId = null) {
     nextDue: formatDate(data.get("nextDue")),
     risk: data.get("risk"),
     documents: [
-      ["NRIC / Passport", "pending"],
-      ["Bank Statement", "pending"],
-      ["Business Registration", "pending"],
-      ["Income Proof", "pending"],
+      ["NRIC / Passport", assets.icPhoto ? "verified" : "pending"],
+      ["Bank Statement", assets.bankStatement ? "verified" : "pending"],
+      ["Business Registration", assets.businessRegistration ? "verified" : "pending"],
+      ["Income Proof", assets.incomeProof ? "verified" : "pending"],
     ],
+    assets,
   };
+}
+
+function fileAssetFromInput(input) {
+  const file = input.files?.[0];
+  if (!file) {
+    return Promise.resolve(null);
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () =>
+      resolve({
+        name: file.name,
+        type: file.type || "application/octet-stream",
+        dataUrl: reader.result,
+      }),
+    );
+    reader.addEventListener("error", () => reject(reader.error));
+    reader.readAsDataURL(file);
+  });
 }
 
 function labelStatus(status) {
@@ -472,8 +601,8 @@ function labelStatus(status) {
     approved: "Approved",
     review: "Review",
     pending: "Pending",
+    rejected: "Fail / Reject",
     verified: "Verified",
-    pending: "Pending",
     missing: "Missing",
   };
   return labels[status] || status;
@@ -525,6 +654,7 @@ function populateForm(client) {
   fields.nextDue.value = client.rawNextDue || "";
   fields.status.value = client.status;
   fields.risk.value = client.risk;
+  fields.rejectReason.value = client.rejectReason || "";
 }
 
 elements.navItems.forEach((item) => {
@@ -581,9 +711,10 @@ elements.editCustomer.addEventListener("click", () => {
   renderViews();
 });
 
-elements.form.addEventListener("submit", (event) => {
+elements.form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const editedClient = createClientFromForm(elements.form, state.editingId);
+  const existingClient = clients.find((client) => client.id === state.editingId);
+  const editedClient = await createClientFromForm(elements.form, existingClient);
 
   if (state.editingId) {
     clients = clients.map((client) => (client.id === state.editingId ? editedClient : client));

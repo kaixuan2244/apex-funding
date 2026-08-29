@@ -27,7 +27,8 @@ body {
 
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
@@ -257,19 +258,35 @@ select {
 }
 
 .application-form input,
-.application-form select {
+.application-form select,
+.application-form textarea {
   width: 100%;
-  min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 0 12px;
   color: var(--ink);
   background: #ffffff;
   outline: none;
 }
 
+.application-form input,
+.application-form select {
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.application-form input[type="file"] {
+  padding: 9px 10px;
+}
+
+.application-form textarea {
+  min-height: 88px;
+  resize: vertical;
+  padding: 11px 12px;
+}
+
 .application-form input:focus,
-.application-form select:focus {
+.application-form select:focus,
+.application-form textarea:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 4px rgba(18, 104, 243, 0.12);
 }
@@ -332,7 +349,7 @@ select {
 
 .status-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 6px;
   padding: 4px;
   border-radius: 8px;
@@ -448,13 +465,21 @@ select {
   overflow: hidden;
   flex: 0 0 auto;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  background: #04142f;
+  background: linear-gradient(135deg, var(--cyan), var(--blue));
+  display: grid;
+  place-items: center;
 }
 
 .avatar-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.avatar-wrap span {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 900;
 }
 
 .status-pill {
@@ -478,6 +503,16 @@ select {
 
 .status-pill.pending {
   color: #eaf6ff;
+}
+
+.status-pill.rejected {
+  color: #ffe1e4;
+}
+
+.client-card .status-pill.rejected,
+.table-row .status-pill.rejected {
+  color: var(--red);
+  background: #fff0f1;
 }
 
 .loading-ring {
@@ -545,6 +580,17 @@ select {
   font-weight: 700;
 }
 
+.reason-box {
+  margin: 0;
+  padding: 14px;
+  border-left: 4px solid var(--red);
+  border-radius: 8px;
+  color: #842029;
+  background: #fff0f1;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .progress-track {
   width: 100%;
   height: 12px;
@@ -578,6 +624,59 @@ select {
 .document-list {
   display: grid;
   gap: 10px;
+}
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.media-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.media-card img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  background: var(--soft);
+}
+
+.file-preview {
+  min-height: 130px;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  color: var(--muted);
+  background: var(--soft);
+  font-weight: 800;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.media-card a,
+.file-link {
+  color: var(--blue);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.media-card-body {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+}
+
+.media-card-body span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .document-row {
@@ -682,6 +781,7 @@ button.table-row:hover {
   .metric-grid,
   .detail-grid,
   .application-form,
+  .media-grid,
   .table-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -716,6 +816,7 @@ button.table-row:hover {
   .metric-grid,
   .detail-grid,
   .application-form,
+  .media-grid,
   .table-row,
   .info-list,
   .repayment-grid {

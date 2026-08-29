@@ -15,6 +15,8 @@ Open `index.html` in a browser. No installation is required.
 - Edit saved customer and loan records
 - Clickable Dashboard, Clients, Loans, and Documents sections
 - Pending status with loading animation
+- Fail / Reject status with a visible rejection reason
+- Customer avatar, IC photo, selfie with IC, and supporting document uploads
 - Browser-local saved records for quick demos
 - Customer search and status filtering
 - Customer profile details

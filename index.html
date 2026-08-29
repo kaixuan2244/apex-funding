@@ -160,6 +160,7 @@
                 <option value="approved">Approved</option>
                 <option value="review">Review</option>
                 <option value="pending">Pending</option>
+                <option value="rejected">Fail / Reject</option>
               </select>
             </label>
             <label>
@@ -169,6 +170,34 @@
                 <option>Medium</option>
                 <option>High</option>
               </select>
+            </label>
+            <label class="wide-field">
+              Fail / Reject Reason
+              <textarea name="rejectReason" placeholder="Type the reason if this application failed or was rejected"></textarea>
+            </label>
+            <label>
+              Customer Avatar
+              <input name="avatarFile" type="file" accept="image/*" />
+            </label>
+            <label>
+              IC Photo
+              <input name="icPhotoFile" type="file" accept="image/*,.pdf" />
+            </label>
+            <label>
+              Selfie With IC
+              <input name="selfieFile" type="file" accept="image/*,.pdf" />
+            </label>
+            <label>
+              Bank Statement
+              <input name="bankStatementFile" type="file" accept="image/*,.pdf" />
+            </label>
+            <label>
+              Business Registration
+              <input name="businessRegistrationFile" type="file" accept="image/*,.pdf" />
+            </label>
+            <label>
+              Income Proof
+              <input name="incomeProofFile" type="file" accept="image/*,.pdf" />
             </label>
             <div class="form-actions wide-field">
               <button class="primary-action" type="submit">Save Customer</button>
@@ -192,6 +221,7 @@
               <button class="tab" type="button" data-filter="approved">Approved</button>
               <button class="tab" type="button" data-filter="pending">Pending</button>
               <button class="tab" type="button" data-filter="review">Review</button>
+              <button class="tab" type="button" data-filter="rejected">Reject</button>
             </div>
             <div id="clientList" class="client-list"></div>
           </section>
@@ -199,7 +229,8 @@
           <section class="profile-panel" aria-label="Selected client profile">
             <div class="profile-hero">
               <div class="avatar-wrap">
-                <img src="./public/assets/apex-logo-square.png" alt="" />
+                <img id="clientAvatar" src="" alt="" hidden />
+                <span id="clientInitials">DL</span>
               </div>
               <div>
                 <p id="clientStatus" class="status-pill approved">Approved</p>
@@ -252,6 +283,13 @@
               </dl>
             </section>
 
+            <section id="rejectReasonSection" class="info-section" hidden>
+              <div class="section-heading tight">
+                <h3>Fail / Reject Reason</h3>
+              </div>
+              <p id="rejectReasonText" class="reason-box"></p>
+            </section>
+
             <section class="info-section repayment-section">
               <div class="section-heading tight">
                 <h3>Repayment Progress</h3>
@@ -278,8 +316,9 @@
 
             <section class="info-section">
               <div class="section-heading tight">
-                <h3>Documents</h3>
+                <h3>Customer Photos & Documents</h3>
               </div>
+              <div id="mediaPreviewList" class="media-grid"></div>
               <div id="documentList" class="document-list"></div>
             </section>
           </section>
@@ -309,6 +348,6 @@
       </main>
     </div>
 
-    <script src="./portal.js?v=72a6a54"></script>
+    <script src="./portal.js?v=reject-files-avatar"></script>
   </body>
 </html>
